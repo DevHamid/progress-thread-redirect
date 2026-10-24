@@ -13,6 +13,14 @@ thread (a forum topic in a group) so the main chat stays clean.
   24 hours is deleted. Newer bubbles accumulate and stay visible until the
   24h window passes. Replaces any immediate delete-previous behavior.
 
+## In action
+
+Progress bubbles (with the single `▬`/`▭` bar, percent label, and one
+`Working…` line) redirected to the target thread, while the terminal command
+output stays in the main chat:
+
+![Plugin in action](assets/screenshot.jpg)
+
 ## Installation
 
 Place this directory under your Hermes plugins dir (e.g. `/opt/data/plugins/`)
