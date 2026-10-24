@@ -1,0 +1,11 @@
+name: progress-thread-redirect
+label: Progress Thread Redirect
+kind: standalone
+version: 1.0.0
+author: shifu
+description: >
+  Redirects Telegram tool-progress bubbles to a dedicated thread (3235) in the
+  target group so the main chat stays clean.
+requires_hermes: ">=0.21.0"
+provides_tools: []
+provides_hooks: []
