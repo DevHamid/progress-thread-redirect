@@ -49,11 +49,18 @@ def _load_history():
         return []
 
 
+def _trim_history(h):
+    """Keep entries younger than 2x the delete window. Count caps evict entries
+    before they reach AUTO_DELETE_S when send volume is high, orphaning them."""
+    cutoff = time.time() - 2 * AUTO_DELETE_S
+    return [e for e in h if float(e.get("sent_ts", 0)) >= cutoff][-5000:]
+
+
 def _append_history(mid, ts):
     try:
         h = _load_history()
         h.append({"message_id": str(mid), "sent_ts": ts})
-        h = h[-300:]  # cap, so the file never grows unbounded
+        h = _trim_history(h)
         with open(_HISTORY_PATH, "w") as f:
             json.dump(h, f)
     except Exception as e:
@@ -98,16 +105,18 @@ async def _sweep_expired(adapter, chat_id):
             continue
         try:
             rdel = await adapter.delete_message(chat_id=chat_id, message_id=mid)
-            _log(f"SWEEP delete mid={mid} success={getattr(rdel,'success',None)}")
-            _deleted_mids.add(mid)
-            deleted += 1
+            ok = bool(rdel)
+            _log(f"SWEEP delete mid={mid} ok={ok}")
+            if ok:
+                _deleted_mids.add(mid)
+                deleted += 1
         except Exception as ex:
             _log(f"SWEEP delete mid={mid} err={ex!r}")
-    # prune processed entries from history
+    # prune processed entries from history (time-trimmed, unbounded count)
     keep = [e for e in h if str(e.get("message_id")) not in _deleted_mids]
     try:
         with open(_HISTORY_PATH, "w") as f:
-            json.dump(keep[-300:], f)
+            json.dump(_trim_history(keep), f)
     except Exception as e:
         _log(f"SWEEP prune err={e!r}")
     return deleted
